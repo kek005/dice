@@ -71,6 +71,19 @@ class Dice:
         # click the search button
         self.driver.find_element(By.CSS_SELECTOR, "#submitSearch-button").click()
         time.sleep(15)
+        
+        # Locate the element containing the job count
+        print("I'm locating the element containing the job count")
+        job_count_element = self.driver.find_element(By.CSS_SELECTOR, "span[data-cy='search-count-mobile']")
+        # Extract the text content of the element
+        job_count_text = job_count_element.text
+        print("Job Count Text:", job_count_text)  # Example: "15,920"
+
+        # Parse the text content to extract the number
+        print("I'm parsing the text content to extract the number")
+        job_count = int(job_count_text.replace(",", ""))
+        print("Total jobs found:", job_count)
+
         self.driver.execute_script("window.scrollTo(0, 70);")
 
         # get all the job links
