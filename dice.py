@@ -8,6 +8,7 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support import expected_conditions as EC
 #from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import StaleElementReferenceException
+from selenium.webdriver.support.ui import Select
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.action_chains import ActionChains
 import time
@@ -70,67 +71,104 @@ class Dice:
         #time.sleep(5)
         # click the search button
         self.driver.find_element(By.CSS_SELECTOR, "#submitSearch-button").click()
-        time.sleep(15)
+        time.sleep(10)
+
+        # select 100 jobs per page and get the total number of jobs
+        try:
+            # Locate the dropdown element
+            dropdown_element = self.driver.find_element(By.CSS_SELECTOR, "#pageSize_2")
+            # Create a Select instance
+            dropdown = Select(dropdown_element)
+            # Select the option with value="100"
+            #dropdown.select_by_value("100")
+            dropdown.select_by_value("20")
+            # Adding a wait time for the page to load after changing the number of jobs per page
+            time.sleep(5)
+            self.driver.execute_script("window.scrollTo(0, 70);")
+            # Locate the element containing the job count
+            print("I'm locating the element containing the job count")
+            job_count_element = self.driver.find_element(By.CSS_SELECTOR, "span[data-cy='search-count-mobile']")
+            # Extract the text content of the element
+            job_count_text = job_count_element.text
+            print("Job Count Text:", job_count_text)  # Example: "15,920"
+            # Parse the text content to extract the number
+            print("I'm parsing the text content to extract the number")
+            job_count = int(job_count_text.replace(",", ""))
+            print("Total jobs found:", job_count)
+            #job_per_page = 100
+            job_per_page = 20
+            # Find the total number of pages
+            total_pages = math.ceil(job_count / job_per_page)
+            print("Total pages:", total_pages)  
+        except:
+             pass
         
-        # Locate the element containing the job count
-        print("I'm locating the element containing the job count")
-        job_count_element = self.driver.find_element(By.CSS_SELECTOR, "span[data-cy='search-count-mobile']")
-        # Extract the text content of the element
-        job_count_text = job_count_element.text
-        print("Job Count Text:", job_count_text)  # Example: "15,920"
-
-        # Parse the text content to extract the number
-        print("I'm parsing the text content to extract the number")
-        job_count = int(job_count_text.replace(",", ""))
-        print("Total jobs found:", job_count)
-
-        self.driver.execute_script("window.scrollTo(0, 70);")
-
-        # get all the job links
-        # Find all job posting elements by their class name
-        job_posting_elements = self.driver.find_elements(By.CLASS_NAME, "card-title-link")
-        print("Total jobs found: ", len(job_posting_elements))
-        # Extract the IDs from these elements
-        job_ids = [elem.get_attribute('id') for elem in job_posting_elements if elem.get_attribute('id')]
-        print("Job IDs:", job_ids)
-        time.sleep(15)
-
-        for job_id in job_ids:
-            # Construct the XPath using the ID
-            job_link_xpath = f"//a[@id='{job_id}']"
-            print("Job link XPath:", job_link_xpath)
-
-            # Find the element and click it
+        # Loop through all the pages
+        for page in range(1, total_pages + 1):
+            print("I'm applying on Page:", page)
+            # get all the job links
             try:
-                job_link = self.driver.find_element(By.XPATH, job_link_xpath)
-                time.sleep(2)
-                print("I'M clicking job link")
-                job_link.click()
-                time.sleep(5) # wait for new tab to open 
-                print("Clicked job link:", job_link)
-                # Switch to the new tab
-                # Get all window handles
-                all_windows = self.driver.window_handles
-                new_window = all_windows[-1]  # The new tab should be the last one
-                self.driver.switch_to.window(new_window)  # Switch to the new tab
-                time.sleep(5)
-                print("Switched to new tab")
-                # Handle actions in the new page or tab here
-                # ...
-
-                # Return to the job listings page
-                # Close the new tab
-                self.driver.close()
-                # Switch back to the original window
-                self.driver.switch_to.window(all_windows[0])
-                time.sleep(2)  # Adjust timing based on page load speed
-
-            except Exception as e:
-                print(f"Error clicking job link with ID {job_id}: {e}")
-
-                # Re-find job posting elements to avoid stale element reference
+                # get all the job links on curent page
+                # Find all job posting elements by their class name
                 job_posting_elements = self.driver.find_elements(By.CLASS_NAME, "card-title-link")
+                print("Total jobs found on this page: ", len(job_posting_elements))
+                # Extract the IDs from these elements
                 job_ids = [elem.get_attribute('id') for elem in job_posting_elements if elem.get_attribute('id')]
+                print("Job IDs:", job_ids)
+                time.sleep(15)
+            except Exception as e:
+                print("Error getting job links on current page:", e)
+
+            # loop through all the job links on current page
+            for job_id in job_ids:
+                # Construct the XPath using the ID
+                job_link_xpath = f"//a[@id='{job_id}']"
+                print("Job link XPath:", job_link_xpath)
+
+                # Find the element and click it
+                try:
+                    job_link = self.driver.find_element(By.XPATH, job_link_xpath)
+                    time.sleep(2)
+                    print("I'M clicking job link")
+                    job_link.click()
+                    time.sleep(5) # wait for new tab to open 
+                    print("Clicked job link:", job_link)
+                    # Switch to the new tab
+                    # Get all window handles
+                    all_windows = self.driver.window_handles
+                    new_window = all_windows[-1]  # The new tab should be the last one
+                    self.driver.switch_to.window(new_window)  # Switch to the new tab
+                    time.sleep(5)
+                    print("Switched to new tab")
+                    # Handle actions in the new page or tab here
+                    # ...
+
+                    # Return to the job listings page
+                    # Close the new tab
+                    self.driver.close()
+                    # Switch back to the original window
+                    self.driver.switch_to.window(all_windows[0])
+                    time.sleep(2)  # Adjust timing based on page load speed
+
+                except Exception as e:
+                    print(f"Error clicking job link with ID {job_id}: {e}")
+
+                    # Re-find job posting elements to avoid stale element reference
+                    job_posting_elements = self.driver.find_elements(By.CLASS_NAME, "card-title-link")
+                    job_ids = [elem.get_attribute('id') for elem in job_posting_elements if elem.get_attribute('id')]
+
+            # Navigate to the next page if not the last page
+            if page < total_pages:
+               try:
+                    # Find the next button element
+                    next_button = self.driver.find_element(By.CSS_SELECTOR, "li[class='pagination-next page-item ng-star-inserted'] a[class='page-link']")
+                    # Click the next button
+                    next_button.click()
+                    time.sleep(5)
+               except Exception as e:
+                    print("Error getting next button:", e)
+
+
 
 start = time.time()
 Dice().diceJobApply()
