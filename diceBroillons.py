@@ -1,5 +1,8 @@
 import time,math,random,os
 from selenium import webdriver
+import requests
+import datetime
+import json
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -143,6 +146,16 @@ class Dice:
                     # Handle actions in the new page or tab here
                     # ...
 
+                    # Apply for the job
+                    print("I'm calling the apply_for_job method")
+                    self.apply_for_job(job_id)
+
+                    countApplied += 1
+                    time.sleep(5)
+                    print("I apply for a job")
+                    print(f"Total job applied: {countApplied}")
+                    print("I'm going back to the job listings page")
+
                     # Return to the job listings page
                     # Close the new tab
                     self.driver.close()
@@ -168,6 +181,171 @@ class Dice:
                except Exception as e:
                     print("Error getting next button:", e)
 
+
+    def apply_for_job(self, job_id):
+        # Initialization
+        start_time = time.time()
+        form_completed = True
+        # Navigate to the job details page, and interact with the shadow DOM to click the apply button
+        try:
+            # click the apply button
+            # Find the shadow host
+            shadow_host = self.driver.find_element(By.CSS_SELECTOR, f'apply-button-wc[job-id="{job_id}"]')
+            # Get the shadow root
+            shadow_root = self.driver.execute_script('return arguments[0].shadowRoot', shadow_host)
+            # Find the button inside the shadow root and click it
+            apply_button = shadow_root.find_element(By.CSS_SELECTOR, 'button.btn.btn-primary')
+            self.driver.execute_script('arguments[0].click()', apply_button)
+            time.sleep(10)
+            print("I just Clicked apply button")
+            print("I'm scrolling down the page")
+            self.driver.execute_script("window.scrollTo(0, 570);")
+            time.sleep(5)
+            
+            # Click the Next or Submit buttons as required
+            while True:
+                # Timeout check
+                if time.time() - start_time > 190:  # 300 seconds timeout
+                    form_completed = False
+                    print(f"Timeout reached for job {job_id}")
+                    break
+                
+                # Click the first next on the resume page
+                print("Im clicking the first next button on resume page")
+                first_next = self.driver.find_element(By.CSS_SELECTOR, "button[class='btn btn-primary btn-next btn-block']")
+                first_next.click()
+                #self.driver.find_element(By.CSS_SELECTOR, "button[class='btn btn-primary btn-next btn-block']")
+                print("Next button has been cliked")
+                time.sleep(10)
+
+                # Check if there is a form present to be filled
+                # Here, instead of if self.is_form_present(), directly handle form elements
+                try:
+                    print("I'm checking if there is a form present to be filled inside the try")
+                    self.check_and_handle_form_elements()
+                except Exception as e:
+                    print(f"Something bad happen when checking for form to apply. Here is the error: {e}")
+
+                # Check if the Next button is present and click it
+                # Next button and Submit button have the same CSS selector
+                # So no need to check for Submit button separately
+
+                print("I'm checking if the Next button is present and click it")
+                next_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[class='btn btn-primary btn-next btn-split']") #button[type='button'] span
+                if next_buttons:
+                    next_buttons[0].click()
+                    time.sleep(5)
+                else:
+                    # If neither Next nor Submit button is found, assume the submission was successful
+                    print("No Next or Submit button found, assuming form submission was successful")
+                    form_completed = True  # Set form completion to True since the form has likely been submitted
+                    break
+
+                # Check for error message
+                print("I'M CHECKING FOR ERROR MESSAGE JUST IN INCASE")
+                error_message_elements = self.driver.find_elements(By.CSS_SELECTOR, ".error-text")
+                if error_message_elements and error_message_elements[0].is_displayed():
+                    print(f"Error in form submission for job {job_id}: {error_message_elements[0].text}")
+                    form_completed = False
+                    break
+
+            if not form_completed:
+                print(f"Could not complete form for job {job_id}")
+                self.log_incomplete_job(job_id)
+            else:
+                print(f"Applied for job {job_id}")
+                self.log_completed_job(job_id)
+
+            #print(f"Applied for job {job_id}")
+        except Exception as e:
+            print(f"Error applying for job {job_id}: {e}")
+            self.log_incomplete_job(job_id)  # Log the exception case as incomplete
+
+    
+    def check_and_handle_form_elements(self):
+        print("I'm inside the function: check_and_handle_form_elements()")
+        # Selectors for different form elements
+        form_selectors = {
+            'radio': "input[type='radio']:not(:checked)",
+            'input_text': "input[type='text']:not([value]), input[type='email']:not([value]), input[type='number']:not([value])",
+            'select': "select",
+            'textarea': "textarea:not([value])",
+            'checkbox': "input[type='checkbox']:not(:checked)"
+        }
+
+        # Iterate over the selectors to find and handle form elements
+        for element_type, selector in form_selectors.items():
+            elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+            for elem in elements:
+                self.handle_form_element(elem, element_type)  # Handle each element
+
+    
+    def handle_form_element(self, element, element_type):
+        # Logic to interact with the element based on its type
+        if element_type == 'input_text' or element_type == 'textarea':
+            # Handle input text, email, number, and textareas
+            answer = self.ask_gpt("Please provide a suitable answer")  # Replace with the appropriate GPT-3 call
+            element.send_keys(answer)
+
+        elif element_type == 'radio':
+            # Assuming 'element' is the shadow host for the radio buttons
+            shadow_root = self.driver.execute_script('return arguments[0].shadowRoot', element)
+            question_slot = shadow_root.find_element(By.CSS_SELECTOR, "h4 > slot")
+            question_text = self.driver.execute_script("return arguments[0].textContent", question_slot).strip()
+            # Now you have the question_text, send it to GPT-3
+            gpt_response = self.ask_gpt(question_text)  # This function should call GPT-3 API and return the response
+            # gpt_response is assumed to be "Yes" or "No" based on your use case
+            # Find the radio button with the value that matches the GPT-3 response
+            radio_buttons = shadow_root.find_elements(By.CSS_SELECTOR, "input[type='radio']")
+            for radio in radio_buttons:
+                if radio.get_attribute('value') == gpt_response:
+                    self.driver.execute_script("arguments[0].click()", radio) # Click the radio button based on the GPT response
+                    break  # Break after clicking the matching radio button
+
+        elif element_type == 'checkbox':
+            # Handle checkboxes by clicking the first unchecked option
+            element.click()
+
+        elif element_type == 'select':
+            # Handle select dropdowns by selecting the first option that isn't the placeholder
+            Select(element).select_by_index(1)
+
+    
+    def ask_gpt(self, question):
+        # Replace 'your_api_key' with your actual OpenAI API key and adjust the payload as necessary
+        headers = {
+            'Authorization': 'Bearer your_api_key',
+            'Content-Type': 'application/json',
+        }
+        data = {
+            'model': 'text-davinci-003',
+            'prompt': question,
+            'temperature': 0.7,
+            'max_tokens': 60,
+        }
+        response = requests.post('https://api.openai.com/v1/engines/davinci/completions', headers=headers, data=json.dumps(data))
+        response_json = response.json()
+        answer = response_json.get('choices', [{}])[0].get('text', '').strip()
+        return answer
+
+    def log_incomplete_job(self, job_id):
+        # Get the current timestamp
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # Logic to log the job ID with timestamp for which form completion failed
+        with open("incomplete_jobs.log", "a") as log_file:
+            log_file.write(f"{current_time} - Failed to complete application for job ID: {job_id}\n")
+
+        # Additional logic for logging can be added here
+            
+    def log_completed_job(self, job_id):
+        # Get the current timestamp
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Logic to log the job ID with timestamp for which application was successfully completed
+        with open("completed_jobs.log", "a") as log_file:
+            log_file.write(f"{current_time} - Successfully applied for job ID: {job_id}\n")
+
+        # Additional logic for logging can be added here.
 
 
 start = time.time()
