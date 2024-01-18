@@ -47,7 +47,7 @@ class Dice:
         countJobs = 0
 
         self.driver.get("https://www.dice.com/")
-        time.sleep(random.uniform(4, 7))
+        time.sleep(random.uniform(3, 7))
         # Find the first shadow host element on the page
         first_shadow_host = self.driver.find_element(By.TAG_NAME, "dhi-seds-nav-header")
         # Use JavaScript to retrieve the shadow root from the shadow host
@@ -60,21 +60,21 @@ class Dice:
         # Find your target element within the nested shadow root
         target = second_shadow_root.find_element(By.CSS_SELECTOR, "a.icon[href='https://www.dice.com/jobs']")
         target.click()
-        time.sleep(5)
+        time.sleep(random.uniform(3, 7))
         #time.sleep(random.uniform(3, 7))
 
         # input the search keyword
         self.driver.find_element(By.CSS_SELECTOR, "#typeaheadInput").clear()
-        time.sleep(5)
+        time.sleep(random.uniform(3, 7))
         self.driver.find_element(By.CSS_SELECTOR, "#typeaheadInput").send_keys("QA")
-        time.sleep(5)
+        time.sleep(random.uniform(3, 7))
         # enter the location
         #self.driver.find_element(By.CSS_SELECTOR, "#google-location-search").clear()
         #self.driver.find_element(By.CSS_SELECTOR, "#google-location-search").send_keys("Remote Only")
         #time.sleep(5)
         # click the search button
         self.driver.find_element(By.CSS_SELECTOR, "#submitSearch-button").click()
-        time.sleep(10)
+        time.sleep(random.uniform(3, 7))
 
         # select 100 jobs per page and get the total number of jobs
         try:
@@ -86,11 +86,12 @@ class Dice:
             #dropdown.select_by_value("100")
             dropdown.select_by_value("20")
             # Adding a wait time for the page to load after changing the number of jobs per page
-            time.sleep(5)
-            self.driver.execute_script("window.scrollTo(0, 70);")
+            time.sleep(random.uniform(3, 7))
+            self.driver.execute_script("window.scrollTo(0, 170);")
             # Locate the element containing the job count
             print("I'm locating the element containing the job count")
-            job_count_element = self.driver.find_element(By.CSS_SELECTOR, "span[data-cy='search-count-mobile']")
+            #job_count_element = self.driver.find_element(By.CSS_SELECTOR, "span[data-cy='search-count-mobile']")
+            job_count_element = self.driver.find_element(By.CSS_SELECTOR, "#totalJobCount")
             # Extract the text content of the element
             job_count_text = job_count_element.text
             print("Job Count Text:", job_count_text)  # Example: "15,920"
@@ -118,7 +119,7 @@ class Dice:
                 # Extract the IDs from these elements
                 job_ids = [elem.get_attribute('id') for elem in job_posting_elements if elem.get_attribute('id')]
                 print("Job IDs:", job_ids)
-                time.sleep(15)
+                time.sleep(random.uniform(5, 10))
             except Exception as e:
                 print("Error getting job links on current page:", e)
 
@@ -131,17 +132,17 @@ class Dice:
                 # Find the element and click it
                 try:
                     job_link = self.driver.find_element(By.XPATH, job_link_xpath)
-                    time.sleep(2)
+                    time.sleep(random.uniform(2, 7))
                     print("I'M clicking job link")
                     job_link.click()
-                    time.sleep(5) # wait for new tab to open 
+                    time.sleep(random.uniform(3, 7)) # wait for new tab to open 
                     print("Clicked job link:", job_link)
                     # Switch to the new tab
                     # Get all window handles
                     all_windows = self.driver.window_handles
                     new_window = all_windows[-1]  # The new tab should be the last one
                     self.driver.switch_to.window(new_window)  # Switch to the new tab
-                    time.sleep(5)
+                    time.sleep(random.uniform(3, 7))
                     print("Switched to new tab")
                     # Handle actions in the new page or tab here
                     # ...
@@ -151,7 +152,7 @@ class Dice:
                     self.apply_for_job(job_id)
 
                     countApplied += 1
-                    time.sleep(5)
+                    time.sleep(random.uniform(3, 7))
                     print("I apply for a job")
                     print(f"Total job applied: {countApplied}")
                     print("I'm going back to the job listings page")
@@ -161,7 +162,7 @@ class Dice:
                     self.driver.close()
                     # Switch back to the original window
                     self.driver.switch_to.window(all_windows[0])
-                    time.sleep(2)  # Adjust timing based on page load speed
+                    time.sleep(random.uniform(2, 7))  # Adjust timing based on page load speed
 
                 except Exception as e:
                     print(f"Error clicking job link with ID {job_id}: {e}")
@@ -177,7 +178,7 @@ class Dice:
                     next_button = self.driver.find_element(By.CSS_SELECTOR, "li[class='pagination-next page-item ng-star-inserted'] a[class='page-link']")
                     # Click the next button
                     next_button.click()
-                    time.sleep(5)
+                    time.sleep(random.uniform(3, 7))
                except Exception as e:
                     print("Error getting next button:", e)
 
@@ -196,11 +197,11 @@ class Dice:
             # Find the button inside the shadow root and click it
             apply_button = shadow_root.find_element(By.CSS_SELECTOR, 'button.btn.btn-primary')
             self.driver.execute_script('arguments[0].click()', apply_button)
-            time.sleep(10)
+            time.sleep(random.uniform(3, 7))
             print("I just Clicked apply button")
             print("I'm scrolling down the page")
             self.driver.execute_script("window.scrollTo(0, 570);")
-            time.sleep(5)
+            time.sleep(random.uniform(3, 7))
             
             # Click the Next or Submit buttons as required
             while True:
@@ -216,7 +217,7 @@ class Dice:
                 first_next.click()
                 #self.driver.find_element(By.CSS_SELECTOR, "button[class='btn btn-primary btn-next btn-block']")
                 print("Next button has been cliked")
-                time.sleep(10)
+                time.sleep(random.uniform(3, 7))
 
                 # Check if there is a form present to be filled
                 # Here, instead of if self.is_form_present(), directly handle form elements
@@ -234,7 +235,7 @@ class Dice:
                 next_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[class='btn btn-primary btn-next btn-split']") #button[type='button'] span
                 if next_buttons:
                     next_buttons[0].click()
-                    time.sleep(5)
+                    time.sleep(random.uniform(3, 7))
                 else:
                     # If neither Next nor Submit button is found, assume the submission was successful
                     print("No Next or Submit button found, assuming form submission was successful")
