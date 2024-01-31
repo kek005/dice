@@ -3,13 +3,13 @@ from selenium import webdriver
 import requests
 import datetime
 import json
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support import expected_conditions as EC
-#from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -17,26 +17,19 @@ from selenium.webdriver.common.action_chains import ActionChains
 import time
 import os
 
-# Initializing various Python modules like time, math, random, os, and Selenium-related classes.
-
-options = Options()   # Creating a new instance of Chrome Options
-webdriver_path = r"C:\chromedriver.exe"   # Path to the ChromeDriver executable
-
-# Create a Service object and pass it to the WebDriver
-service = Service(webdriver_path)  # Creating a Service object with the path to the ChromeDriver
 
 class Dice:
     def __init__(self):
-            # Constructor of the Dice class
-            # Here, we are configuring Chrome options for the Selenium WebDriver.
-        
-            options.add_argument(r"--user-data-dir=C:\Users\DELL\AppData\Local\Google\Chrome\User Data")  # Setting the user data directory for Chrome
-            options.add_argument(r'--profile-directory=Profile 1')  # Setting the profile directory for Chrome
-            options.add_argument('--disable-gpu')  # Disable GPU (useful for headless mode)
-            options.add_argument('--no-sandbox')  # Disable the sandbox (if running as root)
-            options.add_argument('--disable-dev-shm-usage')  # Overcome limited resource problems
-            #options.add_argument(r'--profile-directory=Profile')
-            self.driver = webdriver.Chrome(service=service, options=options)   # Creating the Chrome WebDriver with the specified service and options
+            options = Options()
+            options.add_argument(r"--user-data-dir=C:\Users\DELL\AppData\Local\Google\Chrome\User Data")
+            options.add_argument(r'--profile-directory=Profile 1')
+            options.add_argument('--disable-gpu')
+            options.add_argument('--no-sandbox')
+            options.add_argument('--disable-dev-shm-usage')
+
+            # Set up ChromeDriverManager and use it to get the path of chromedriver
+            chrome_service = Service(ChromeDriverManager().install())
+            self.driver = webdriver.Chrome(service=chrome_service, options=options)
 
 
     def diceJobApply(self):
@@ -90,31 +83,33 @@ class Dice:
             # Create a Select instance
             dropdown = Select(dropdown_element)
             # Select the option with value="100"
-            #dropdown.select_by_value("100")
-            dropdown.select_by_value("20")
+            dropdown.select_by_value("100")
+            #dropdown.select_by_value("20")
             # Adding a wait time for the page to load after changing the number of jobs per page
             time.sleep(random.uniform(3, 7))
-            self.driver.execute_script("window.scrollTo(0, 170);")
+            #self.driver.execute_script("window.scrollTo(0, 170);")
             # Locate the element containing the job count
             print("I'm locating the element containing the job count")
             print("code line 99")
             #job_count_element = self.driver.find_element(By.CSS_SELECTOR, "span[data-cy='search-count-mobile']")
             time.sleep(random.uniform(3, 7))
-            job_count_element = self.driver.find_element(By.CSS_SELECTOR, "span[data-cy='search-count-mobile']") # span[data-cy='search-count-mobile'] #totalJobCount
+            #time.sleep(80)
+            #job_count_element = self.driver.find_element(By.CSS_SELECTOR, "span[data-cy='search-count-mobile']") # span[data-cy='search-count-mobile'] #totalJobCount   #search-div > dhi-search-page-results > div > div.row.total-results-display > div > div > h4 > span
             # Extract the text content of the element
-            job_count_text = job_count_element.text
-            print("Job Count Text:", job_count_text)  # Example: "15,920"
+            #job_count_text = job_count_element.text
+            #print("Job Count Text:", job_count_text)  # Example: "15,920"
             print("code line 104")
             # Parse the text content to extract the number
             print("I'm parsing the text content to extract the number")
-            job_count = int(job_count_text.replace(",", ""))
-            print("Total jobs found:", job_count)
+            #job_count = int(job_count_text.replace(",", ""))
+            #print("Total jobs found:", job_count)
             print("code line 109")
             #job_per_page = 100
-            job_per_page = 20
+            #job_per_page = 20
             # Find the total number of pages
-            total_pages = math.ceil(job_count / job_per_page)
-            print("Total pages:", total_pages) 
+            #total_pages = math.ceil(job_count / job_per_page)
+            total_pages = 2
+            print("Total pages:", total_pages)
             print("code line 115") 
         except:
              pass
