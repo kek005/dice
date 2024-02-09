@@ -8,6 +8,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.ui import Select
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import StaleElementReferenceException
@@ -16,16 +17,17 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.action_chains import ActionChains
 import time
 import os
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
 
 
 class Dice:
     def __init__(self):
             options = Options()
-            options.add_argument(r"--user-data-dir=C:\Users\DELL\AppData\Local\Google\Chrome\User Data")
-            options.add_argument(r'--profile-directory=Profile 1')
             options.add_argument('--disable-gpu')
             options.add_argument('--no-sandbox')
-            options.add_argument('--headless')
+            #options.add_argument('--headless')
+            options.add_argument("--ignore-certificate-errors")
             options.add_argument('--window-size=1920,1080')
             options.add_argument('--disable-dev-shm-usage')
 
@@ -43,8 +45,18 @@ class Dice:
         countJobs = 0
         countJobApply = 0
 
-        #self.driver.get("https://www.dice.com/")
-        self.driver.get("https://www.dice.com/home/home-feed")
+        self.driver.get("https://www.dice.com/")
+        time.sleep(random.uniform(10, 15))
+
+        # Example usage
+        secret_name = "ancetreseul-gmail-com"
+        secret_value = self.get_secret_from_vault(secret_name)
+        print(f"The value of the secret '{secret_name}' is: {secret_value}")
+        print("I'm calling the login method")
+        self.login(secret_value)
+
+
+        #self.driver.get("https://www.dice.com/home/home-feed")
         time.sleep(random.uniform(15, 20))
         # Find the first shadow host element on the page
         first_shadow_host = self.driver.find_element(By.TAG_NAME, "dhi-seds-nav-header")
@@ -76,7 +88,13 @@ class Dice:
         #time.sleep(5)
         # click the search button
         self.driver.find_element(By.CSS_SELECTOR, "#submitSearch-button").click()
-        time.sleep(random.uniform(3, 7))
+        time.sleep(random.uniform(7, 9))
+
+        # Filter the job listings
+        print("I'm calling the filterjob method")
+        self.filterjob()
+        time.sleep(random.uniform(5, 8))
+        print("I just called the filterjob method")
 
         # select 100 jobs per page and get the total number of jobs
         try:
@@ -268,13 +286,13 @@ class Dice:
 
                 # Check if there is a form present to be filled
                 # Here, instead of if self.is_form_present(), directly handle form elements
-                try:
+                '''try:
                     print("I'm checking if there is a form present to be filled inside the try")
                     self.check_and_handle_form_elements(form_completed)
                 except Exception as e:
                     print(f"Something bad happen when checking for form to apply. Here is the error: {e}")
                     print("There is no element to handle that is why it was not itterable")
-                    form_completed = True
+                    form_completed = True'''
 
                 # Check if the Next button is present and click it
                 # Next button and Submit button have the same CSS selector
@@ -440,6 +458,96 @@ class Dice:
             log_file.write(f"{current_time} - Job already applied for: {job_title} from {job_company}\n")
 
         # Additional logic for logging can be added here.
+            
+    def get_secret_from_vault(self, secret_name):
+        # Initialize the Azure credentials and the client
+        credential = DefaultAzureCredential()
+        vault_url = "https://security04.vault.azure.net/"
+        client = SecretClient(vault_url=vault_url, credential=credential)
+        
+        # Retrieve the secret value
+        retrieved_secret = client.get_secret(secret_name)
+        return retrieved_secret.value
+    
+    def login(self, password):
+        # Logic to log in to the website
+        # JavaScript to access the shadow DOM elements
+        print("I'm inside the login method")
+
+        script = """
+        var button = document
+        .querySelector('dhi-seds-nav-header') // First shadow host
+        .shadowRoot.querySelector('dhi-seds-nav-header-technologist') // Second shadow host
+        .shadowRoot.querySelector('dhi-seds-nav-header-display') // Third shadow host
+        .shadowRoot.querySelector('button.links-toggle'); // Element inside the third shadow root
+        button.click();
+        """
+        # Execute the JavaScript to click the button inside the browser
+        self.driver.execute_script(script)
+        time.sleep(random.uniform(3, 7))
+        print("I just clicked the menu button")
+        print("Now clicking the login link")
+        script = """
+        var shadowHost1 = document.querySelector('dhi-seds-nav-header');
+        var shadowRoot1 = shadowHost1.shadowRoot;
+        var shadowHost2 = shadowRoot1.querySelector('dhi-seds-nav-header-technologist');
+        var shadowRoot2 = shadowHost2.shadowRoot;
+        var shadowHost3 = shadowRoot2.querySelector('dhi-seds-nav-header-display');
+        var shadowRoot3 = shadowHost3.shadowRoot;
+        var loginLink = shadowRoot3.querySelector('a[href="https://www.dice.com/dashboard/login"]');
+        loginLink.click();
+        """
+        self.driver.execute_script(script)
+        time.sleep(random.uniform(3, 7))
+        print("I just clicked the login link")
+        self.driver.find_element(By.CSS_SELECTOR, "#email").send_keys("ancetreseul@gmail.com")
+        time.sleep(random.uniform(1, 3))
+        self.driver.find_element(By.CSS_SELECTOR, "#password").send_keys(password)
+        time.sleep(random.uniform(1, 3))
+        self.driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
+        time.sleep(random.uniform(3, 7))
+        print("I just clicked the submit button to login")
+
+        try:
+            # Wait for the popup to be visible
+            popup_close_button = WebDriverWait(self.driver, 10).until(
+                EC.visibility_of_element_located((By.ID, "sms-close-x"))
+            )
+
+            # Click the close button
+            popup_close_button.click()
+            print("Popup closed successfully.")
+
+        except TimeoutException:
+            # Log or print the exception message
+            print("No popup appeared to close.")
+
+        time.sleep(1)
+    
+    def filterjob(self):
+        print("I'm inside the filterjob method")
+        # Logic to filter the job listings
+        # select remote jobs
+        self.driver.find_element(By.CSS_SELECTOR, "button[aria-label='Filter Search Results by Remote Only'] i[class='fa fa-square-o']").click()
+        time.sleep(random.uniform(1, 3))
+        #self.driver.execute_script("window.scrollTo(0, 570);")
+        time.sleep(random.uniform(3, 5))
+        print("Clicking on easy apply jobs only")
+        # Easy apply jobs only
+        self.driver.find_element(By.CSS_SELECTOR, "i[class='fa fa-square-o']").click()
+        # select todays jobs
+        try:
+            button = self.driver.find_element(By.XPATH, "//button[text()=' Today ']")
+            button.click()
+            #self.driver.find_element(By.CSS_SELECTOR, "#facets > dhi-accordion.facet-group.ng-tns-c457595256-5.ng-star-inserted > div.facet-body.ng-tns-c457595256-5.ng-trigger.ng-trigger-expand > div > js-single-select-filter > div > div > button:nth-child(2)").click()
+            time.sleep(random.uniform(1, 3))
+        except:
+            print("I'm not able to click the today's jobs filter")
+            pass
+        #self.driver.find_element(By.CSS_SELECTOR, ".btn.btn-md.ng-star-inserted.btn-primary").click()
+        #time.sleep(random.uniform(1, 3))
+        
+        print("I just clicked the remote jobs filter")
 
 
 start = time.time()
