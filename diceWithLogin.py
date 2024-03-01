@@ -522,7 +522,7 @@ class Dice:
             # Log or print the exception message
             print("No popup appeared to close.")
 
-        time.sleep(1)
+        time.sleep(10)
     
     def filterjob(self):
         print("I'm inside the filterjob method")

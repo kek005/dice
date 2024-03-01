@@ -25,9 +25,13 @@ class Dice:
             options.add_argument(r'--profile-directory=Profile 1')
             options.add_argument('--disable-gpu')
             options.add_argument('--no-sandbox')
-            options.add_argument('--headless')
+            #options.add_argument('--headless')
             options.add_argument('--window-size=1920,1080')
             options.add_argument('--disable-dev-shm-usage')
+
+            #webdriver_path = r"C:\chromedriver.exe"   # Path to the ChromeDriver executable
+            # Create a Service object and pass it to the WebDriver
+            #chrome_service = Service(webdriver_path)  # Creating a Service object with the path to the ChromeDriver
 
             # Set up ChromeDriverManager and use it to get the path of chromedriver
             chrome_service = Service(ChromeDriverManager().install())
@@ -148,19 +152,29 @@ class Dice:
                     job_link = self.driver.find_element(By.XPATH, job_link_xpath)
                     time.sleep(random.uniform(2, 7))
                     print("I'M clicking job link")
+                    original_window = self.driver.current_window_handle
                     job_link.click()
                     time.sleep(random.uniform(6, 9)) # wait for new tab to open 
                     print("Clicked job link:", job_link)
                     print("code line 152")
                     print("Because I clicked the job link, a new tab has been opened")
                     print("Now I will switch to the new tab")
+                    print("Before that I will wait for the total number of windows to be 2")
+                    # Wait for a new window/tab to open
+                    WebDriverWait(self.driver, 10).until(EC.number_of_windows_to_be(2))
+                    print("I just waited for the total number of windows to be 2")
+                    print("Now I will try to switch to the new tab")
                     # Switch to the new tab
                     # Get all window handles
-                    all_windows = self.driver.window_handles
-                    new_window = all_windows[-1]  # The new tab should be the last one
-                    self.driver.switch_to.window(new_window)  # Switch to the new tab
-                    time.sleep(random.uniform(4, 7))
-                    print("Switched to new tab")
+                    #all_windows = self.driver.window_handles
+                    #new_window = all_windows[-1]  # The new tab should be the last one
+                    #self.driver.switch_to.window(new_window)  # Switch to the new tab
+                    for window_handle in self.driver.window_handles:
+                        if window_handle != original_window:
+                            self.driver.switch_to.window(window_handle)
+                            break
+                    time.sleep(random.uniform(8, 13))
+                    print("I just Switched to new tab")
                     print("code line 162")
                     # Handle actions in the new page or tab here
                     job_title = self.driver.find_element(By.CSS_SELECTOR, "#jobdetails > h1").text # #jobdetails > h1  or body > div:nth-child(3) > div:nth-child(5) > main:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div:nth-child(1) > h1:nth-child(1)
@@ -173,7 +187,7 @@ class Dice:
                     # Apply for the job
                     print("I'm calling the apply_for_job method")
                     self.apply_for_job(job_id, job_title, job_company, countJobApply)
-                    print("Returning from the method apply_for_job")
+                    print("I just return from the method apply_for_job")
                     print("code line 179")
 
                     countJobClicked += 1
@@ -187,8 +201,8 @@ class Dice:
                     self.driver.close()
                     time.sleep(random.uniform(5, 7))
                     # Switch back to the original window
-                    self.driver.switch_to.window(all_windows[0])
-                    print("I just switch back to the first window")
+                    self.driver.switch_to.window(original_window)
+                    print("I just switch back to ll_windows[0]the first window")
                     print("End of the try block line 189")
                     time.sleep(random.uniform(4, 7))  # Adjust timing based on page load speed
 
@@ -237,9 +251,9 @@ class Dice:
         except Exception as e:
             print(f"The button Apply is not available, which mean job has already been applyied  {job_title}: {e}")
             self.log_alreadycomplete_job(job_title, job_company)
-            print("I'm returning from the apply_for_job method at except block")
+            print("I'm returning from the apply_for_job method at except block that show that job has already been applied for")
             print("code line 241")
-            return
+            return countJobApply
 
         # After clicking the Apply button, click the Next or Submit buttons as required
         print("I arleady clicked the apply button")
@@ -262,21 +276,21 @@ class Dice:
                 first_next.click()
                 print("I just clicked the first next button on resume page")
                 #self.driver.find_element(By.CSS_SELECTOR, "button[class='btn btn-primary btn-next btn-block']")
-                print("Next button has been cliked")
+                print("First Next button has been cliked")
                 print("code line 250")
                 time.sleep(random.uniform(3, 7))
 
                 # Check if there is a form present to be filled
                 # Here, instead of if self.is_form_present(), directly handle form elements
-                try:
+                '''try:
                     print("I'm checking if there is a form present to be filled inside the try")
                     self.check_and_handle_form_elements(form_completed)
                 except Exception as e:
                     print(f"Something bad happen when checking for form to apply. Here is the error: {e}")
                     print("There is no element to handle that is why it was not itterable")
-                    form_completed = True
+                    form_completed = True'''
 
-                # Check if the Next button is present and click it
+                # Check if the Next button is present, then click it
                 # Next button and Submit button have the same CSS selector
                 # So no need to check for Submit button separately
 
@@ -327,6 +341,8 @@ class Dice:
             countJobApply += 1
             print(f"Total job applied: {countJobApply}")
             self.log_completed_job(job_title, job_company)  # Log the exception case as incomplete
+            print("I just applied for the job and I'm returning from the Apply job method")
+            return countJobApply
 
     
     def check_and_handle_form_elements(self, form_completed):

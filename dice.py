@@ -25,6 +25,8 @@ class Dice:
             options.add_argument(r'--profile-directory=Profile 1')
             options.add_argument('--disable-gpu')
             options.add_argument('--no-sandbox')
+            #options.add_argument('--headless')
+            options.add_argument('--window-size=1920,1080')
             options.add_argument('--disable-dev-shm-usage')
 
             # Set up ChromeDriverManager and use it to get the path of chromedriver
@@ -43,7 +45,7 @@ class Dice:
 
         #self.driver.get("https://www.dice.com/")
         self.driver.get("https://www.dice.com/home/home-feed")
-        time.sleep(random.uniform(7, 11))
+        time.sleep(random.uniform(15, 20))
         # Find the first shadow host element on the page
         first_shadow_host = self.driver.find_element(By.TAG_NAME, "dhi-seds-nav-header")
         # Use JavaScript to retrieve the shadow root from the shadow host
@@ -135,13 +137,14 @@ class Dice:
             # loop through all the job links on current page
             for job_id in job_ids:
                 # Construct the XPath using the ID
+                print("I m constructing the Xpath using the IDs")
                 job_link_xpath = f"//a[@id='{job_id}']"
                 print("Job link XPath:", job_link_xpath)
                 time.sleep(random.uniform(2, 4))
 
                 # Find the element and click it
                 try:
-                    print("I'm constructing an xpath locator to click job link")
+                    print("I'm getting the webElement from the xpath locator to click job link")
                     job_link = self.driver.find_element(By.XPATH, job_link_xpath)
                     time.sleep(random.uniform(2, 7))
                     print("I'M clicking job link")
@@ -160,9 +163,6 @@ class Dice:
                     print("Switched to new tab")
                     print("code line 162")
                     # Handle actions in the new page or tab here
-                    # ...
-                    #job_title = "test"
-                    #job_company = "test"
                     job_title = self.driver.find_element(By.CSS_SELECTOR, "#jobdetails > h1").text # #jobdetails > h1  or body > div:nth-child(3) > div:nth-child(5) > main:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div:nth-child(1) > h1:nth-child(1)
                     print("Job Title:", job_title)
                     print("code line 162")
@@ -185,15 +185,17 @@ class Dice:
                     # Return to the job listings page
                     # Close the new tab
                     self.driver.close()
+                    time.sleep(random.uniform(5, 7))
                     # Switch back to the original window
                     self.driver.switch_to.window(all_windows[0])
+                    print("I just switch back to the first window")
+                    print("End of the try block line 189")
                     time.sleep(random.uniform(4, 7))  # Adjust timing based on page load speed
 
                 except Exception as e:
                     print("Inside the except block for the try block to click job link")
                     print("code line 199")
-                    print(f"Error clicking job link with ID {job_id}: {e}")
-                    print("Why this error message?")
+                    print(f"Here is the error message {job_id}: {e}")
 
                     # Re-find job posting elements to avoid stale element reference
                     job_posting_elements = self.driver.find_elements(By.CLASS_NAME, "card-title-link")
