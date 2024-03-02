@@ -30,8 +30,10 @@ Thumbs.db
 *.tar.gz
 *.zip
 *.rar
-diceBroillons.py
-diceWithLogin.py
 incomplete_jobs.log
 complete_jobs.log
 alradycompleted_jobs.log
+dice.py
+diceBroillons.py
+diceFireFox.py
+diceWithLogin.py
