@@ -101,13 +101,39 @@ class Dice:
         self.driver.execute_script(js_click_script)
         time.sleep(random.uniform(3, 7))
 
+        # JavaScript to click the button to filter search results by remote
+        # JavaScript snippet to click an element based on XPath
+        js_script = """
+        var xpath = "//button[@aria-label='Filter Search Results by Remote']//i[@class='fa ng-tns-c584973506-10 fa-square-o']";
+        var element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+        if (element) element.click();
+        """
+        print("I'm executing the JavaScript script to click the button to filter search results by remote")
+        # Execute the JavaScript script
+        self.driver.execute_script(js_script)
+
+        # //i[@class='fa fa-square-o']
+
+        # JavaScript to click the button to filter search results by easy apply
+        js_script = """
+        var xpath = "//i[@class='fa fa-square-o']";
+        var element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+        if (element) element.click();
+        """
+        print("I'm executing the JavaScript script to click the button to filter search results by easy apply")
+        # Execute the JavaScript script
+        self.driver.execute_script(js_script)
+
+
+
+
         # select 100 jobs per page and get the total number of jobs
         try:
             # JavaScript code to select the option with value="100"
             js_script = """
                 var select = document.querySelector('#pageSize_2');
                 for(var i = 0; i < select.options.length; i++){
-                    if(select.options[i].value == '20'){
+                    if(select.options[i].value == '100'){
                         select.selectedIndex = i;
                         select.dispatchEvent(new Event('change'));
                         break;
@@ -118,13 +144,13 @@ class Dice:
             self.driver.execute_script(js_script)
             # Adding a wait time for the page to load after changing the number of jobs per page
             time.sleep(random.uniform(3, 7))
-            total_pages = 4
+            total_pages = 2
             print("Total pages:", total_pages)
             print("code line 115") 
         except:
              pass
         
-        total_pages = 4
+        total_pages = 2
         # Loop through all the pages
         for page in range(1, total_pages + 1):
             print("I'm applying on Page:", page)
