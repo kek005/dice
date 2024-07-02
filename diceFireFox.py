@@ -101,30 +101,54 @@ class Dice:
         self.driver.execute_script(js_click_script)
         time.sleep(random.uniform(3, 7))
 
-        # JavaScript to click the button to filter search results by remote
+        # Filter search results by remote
+
+        # Click the radio button to filter search results by easy apply
+        try:
+            radio_button = WebDriverWait(self.driver, 10).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "button[aria-label='Filter Search Results by Remote']"))
+            )
+            radio_button.click()
+            print("Radio button clicked successfully.")
+        except Exception as e:
+            print(f"Error clicking radio button: {e}")
+
+        time.sleep(random.uniform(7, 10))
         # JavaScript snippet to click an element based on XPath
-        js_script = """
+        '''js_script = """
         var xpath = "//button[@aria-label='Filter Search Results by Remote']//i[@class='fa ng-tns-c584973506-10 fa-square-o']";
         var element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
         if (element) element.click();
         """
         print("I'm executing the JavaScript script to click the button to filter search results by remote")
         # Execute the JavaScript script
-        self.driver.execute_script(js_script)
+        self.driver.execute_script(js_script)'''
 
         # //i[@class='fa fa-square-o']
 
         # JavaScript to click the button to filter search results by easy apply
-        js_script = """
+        '''js_script = """
         var xpath = "//i[@class='fa fa-square-o']";
         var element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
         if (element) element.click();
         """
         print("I'm executing the JavaScript script to click the button to filter search results by easy apply")
         # Execute the JavaScript script
-        self.driver.execute_script(js_script)
+        #self.driver.execute_script(js_script)
 
+        time.sleep(random.uniform(7, 10))'''
 
+        # Click the radio button to filter search results by easy apply
+        try:
+            radio_button = WebDriverWait(self.driver, 10).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "button[aria-label='Filter Search Results by Easy Apply']"))
+            )
+            radio_button.click()
+            print("Radio button clicked successfully.")
+        except Exception as e:
+            print(f"Error clicking radio button: {e}")
+
+        time.sleep(random.uniform(7, 10))
 
 
         # select 100 jobs per page and get the total number of jobs
@@ -146,7 +170,7 @@ class Dice:
             time.sleep(random.uniform(3, 7))
             total_pages = 2
             print("Total pages:", total_pages)
-            print("code line 115") 
+            print("code line 151") 
         except:
              pass
         
@@ -154,14 +178,14 @@ class Dice:
         # Loop through all the pages
         for page in range(1, total_pages + 1):
             print("I'm applying on Page:", page)
-            print("code line 121")
+            print("code line 159")
             # get all the job links
             try:
                 # get all the job links on curent page
                 # Find all job posting elements by their class name
                 job_posting_elements = self.driver.find_elements(By.CLASS_NAME, "card-title-link")
                 print("Total jobs found on this page: ", len(job_posting_elements))
-                print("code line 129")
+                print("code line 166")
                 # Extract the IDs from these elements
                 job_ids = [elem.get_attribute('id') for elem in job_posting_elements if elem.get_attribute('id')]
                 print("Job IDs:", job_ids)
@@ -187,7 +211,7 @@ class Dice:
                     job_link.click()
                     time.sleep(random.uniform(6, 9)) # wait for new tab to open 
                     print("Clicked job link:", job_link)
-                    print("code line 152")
+                    print("code line 192")
                     print("Because I clicked the job link, a new tab has been opened")
                     print("Now I will switch to the new tab")
                     print("Before that I will wait for the total number of windows to be 2")
@@ -202,20 +226,20 @@ class Dice:
                             break
                     time.sleep(random.uniform(8, 13))
                     print("I just Switched to new tab")
-                    print("code line 162")
+                    print("code line 207")
                     # Handle actions in the new page or tab here
                     job_title = self.driver.find_element(By.CSS_SELECTOR, "#jobdetails > h1").text # #jobdetails > h1  or body > div:nth-child(3) > div:nth-child(5) > main:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div:nth-child(1) > h1:nth-child(1)
                     print("Job Title:", job_title)
-                    print("code line 162")
+                    print("code line 211")
                     job_company = self.driver.find_element(By.CSS_SELECTOR, "#jobdetails > div > ul > li.job-header_jobDetailFirst__xI_5S.job-header_companyName__Mx3ZU.text-center.font-sans.text-base.non-italic.font-normal.md\:mr-4.md\:text-left.md\:flex-nowrap > ul > li > a").text
                     print("Job Company:", job_company)
-                    print("code line 165")
+                    print("code line 214")
 
                     # Apply for the job
                     print("I'm calling the apply_for_job method")
                     self.apply_for_job(job_id, job_title, job_company)
                     print("I just return from the method apply_for_job")
-                    print("code line 179")
+                    print("code line 220")
 
                     countJobClicked += 1
                     time.sleep(random.uniform(5, 7))
@@ -230,12 +254,12 @@ class Dice:
                     # Switch back to the original window
                     self.driver.switch_to.window(original_window)
                     print("I just switch back to ll_windows[0]the first window")
-                    print("End of the try block line 189")
+                    print("End of the try block line 235")
                     time.sleep(random.uniform(4, 7))  # Adjust timing based on page load speed
 
                 except Exception as e:
                     print("Inside the except block for the try block to click job link")
-                    print("code line 199")
+                    print("code line 240")
                     print(f"Here is the error message {job_id}: {e}")
 
                     # Re-find job posting elements to avoid stale element reference
@@ -278,7 +302,7 @@ class Dice:
             # After clicking the Apply button, click the Next or Submit buttons as required
             print("I arleady clicked the apply button")
             print("Now trying to click the next button")
-            print("code line 243")
+            print("code line 283")
             try:
                 # Click the Next or Submit buttons as required
                 while True:
@@ -291,19 +315,20 @@ class Dice:
                     
                     # Click the first next on the resume page
                     print("Im clicking the first next button on resume page")
-                    print("code line 247")
-                    first_next = self.driver.find_element(By.CSS_SELECTOR, "button[class='btn btn-primary btn-next btn-block']")
+                    print("code line 296")
+                    #first_next = self.driver.find_element(By.CSS_SELECTOR, "button[class='btn btn-primary btn-next btn-block']")
+                    first_next = self.driver.find_element(By.CSS_SELECTOR, "button[class='seds-button-primary btn-next']")
                     first_next.click()
                     print("I just clicked the first next button on resume page")
                     #self.driver.find_element(By.CSS_SELECTOR, "button[class='btn btn-primary btn-next btn-block']")
                     print("First Next button has been cliked")
-                    print("code line 250")
+                    print("code line 303")
                     time.sleep(random.uniform(3, 7))
 
                     # Check if the Next button is present, then click it
                     print("I'm checking if the Next button is present after form completion and click it")
-                    print("code line 270")
-                    next_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[class='btn btn-primary btn-next btn-split']") #button[type='button'] span
+                    print("code line 308")
+                    next_buttons = self.driver.find_elements(By.CSS_SELECTOR, "button[class='seds-button-primary btn-next']") #button[type='button'] span
                     if next_buttons:
                         next_buttons[0].click()
                         print("I just clicked the second next button")
@@ -337,7 +362,7 @@ class Dice:
             print(f"The button Apply is not available, which mean job has already been applyied  {job_title}: {e}")
             self.log_alreadycomplete_job(job_title, job_company)
             print("I'm returning from the apply_for_job method at except block that show that job has already been applied for")
-            print("code line 241")
+            print("code line 343")
 
         
 
