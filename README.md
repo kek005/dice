@@ -26,7 +26,7 @@ pip install requests
 Setup
 
 Clone the Repository:
-git clone https://github.com/yourusername/dice-job-automation.git
+git clone https://github.com/kek005/dice.git
 
 cd dice-job-automation
 
